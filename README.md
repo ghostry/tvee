@@ -8,7 +8,7 @@ TVee
 
 * 安装 python
 * 安装依赖 `pip install -r tvee/requirements.txt && pip install supervisor`
-* 安装前端依赖 `cd tvee && bower install` 该步骤依赖比较复杂，你可以在本地安装好以后再服务到 NAS
+* 安装前端依赖 `cd tvee && bower install` 该步骤依赖比较复杂，你可以在本地安装好以后再复制到 NAS
 * 配置 `cp config.sample.conf config.conf && vi config.conf`
 * 初始化 `python -m tvee init`
 * 启动 `supervisord -c production/supervisord.conf`
