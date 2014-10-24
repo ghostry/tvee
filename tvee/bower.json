@@ -1,0 +1,27 @@
+{
+  "name": "neschn",
+  "version": "2.0.0",
+  "authors": [
+    "Herb <i@4leaf.me>"
+  ],
+  "main": "index.html",
+  "license": "copyright",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angularjs": "~1.2.25",
+    "angular-route": "~1.2.25",
+    "angular-resource": "~1.2.25",
+    "angular-animate": "~1.2.25",
+    "AngularJS-Toaster": "~0.4.7",
+    "angular-bootstrap": "~0.11.2",
+    "bootstrap": "~3.2.0",
+    "zeroclipboard": "~2.1.6",
+    "ng-clip": "~0.2.3"
+  }
+}

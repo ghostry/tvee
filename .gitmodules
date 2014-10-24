@@ -1,0 +1,4 @@
+[submodule "xunlei-lixian"]
+	path = xunlei-lixian
+	url = https://github.com/exherb/xunlei-lixian.git
+    branch = aria2-rpc

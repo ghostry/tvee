@@ -1,0 +1,7 @@
+rq-dashboard
+rq-scheduler
+tornado
+peewee
+beautifulsoup4
+wtforms_json
+PyRSS2Gen

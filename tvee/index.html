@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zhCN" id="ng-app" ng-app="app">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="tvee website">
+    <title>tvee</title>
+    <script type="text/javascript" src="static/bower_components/angular/angular.min.js"></script>
+    <script type="text/javascript" src="static/bower_components/angular-resource/angular-resource.min.js"></script>
+    <script type="text/javascript" src="static/bower_components/angular-animate/angular-animate.min.js"></script>
+    <script type="text/javascript" src="static/bower_components/AngularJS-Toaster/toaster.js"></script>
+    <script type="text/javascript" src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script type="text/javascript" src="static/bower_components/ng-clip/dest/ng-clip.min.js"></script>
+    <script type="text/javascript" src="static/bower_components/zeroclipboard/dist/ZeroClipboard.min.js"></script>
+    <script type="text/javascript" src="static/js/app.js"></script>
+    <link href="static/bower_components/AngularJS-Toaster/toaster.css" rel="stylesheet">
+    <link href="static/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body ng-controller="TVShowListCtrl">
+    <toaster-container toaster-options="{'time-out': 1500}"></toaster-container>
+    <div class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">TVee</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a ng-click="newTVShow()" href="javascript:void(0);">增加剧集</a>
+                    </li>
+                    <li>
+                        <a ng-click="editSetting()" href="javascript:void(0);">设置</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0);" ng-click="refreshTVShows()">刷新</a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="/rss">RSS(magnet)</a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="/rss?type=ed2k">RSS(ed2k)</a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="/log">日志</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <ul class="nav nav-pills nav-stacked col-md-3">
+                <li ng-class="{active: tvshow_id == tvshow.id}" ng-repeat="tvshow in tvshows"><a href="javascript:void(0);" ng-click="setTvshowId(tvshow.id)">{{tvshow.title}} <span class="badge pull-right">{{tvshow.episodes_count}}</span></a></li>
+            </ul>
+            <div class="col-md-9" ng-if="current_tvshow">
+                <div class="page-header">
+                    <h2>{{current_tvshow.title}} <small><a href="{{current_tvshow.url}}">{{current_tvshow.url}}</a></small>
+                        <div class="btn-group pull-right">
+                            <button class="btn btn-default" ng-click="editTVShow(current_tvshow)"><i class="glyphicon glyphicon-cog"></i></button>
+                            <button class="btn btn-success" ng-click="refreshTVShow()"><i class="glyphicon glyphicon-refresh"></i></button>
+                            <a href="/rss/{{tvshow_id}}" target="_blank" class="btn btn-info">RSS</a>
+                            <button ng-click="deleteCurrentTVShow(current_tvshow)" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i></button>
+                        </div>
+                    </h2>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width:10px;"></th>
+                            <th>#</th>
+                            <th>标题</th>
+                            <th>下载</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="episode in current_tvshow.episodes">
+                            <td>
+                                <input ng-model="episode.checked" type="checkbox" />
+                            </td>
+                            <td>S{{episode.season}}E{{episode.episode}}</td>
+                            <td>{{episode.title}}</td>
+                            <td>
+                                <div class="btn-group-vertical">
+                                    <a href="{{episode.ed2k}}" class="btn btn-default btn-sm">ed2k</a>
+                                    <a href="{{episode.magnet}}" class="btn btn-default btn-sm">magnet</a>
+                                    <button ng-click="downloadEpisode(episode)" class="btn btn-warning btn-sm" ng-if="episode.is_downloaded">重新下载</button>
+                                    <button ng-click="downloadEpisode(episode)" class="btn btn-success btn-sm" ng-if="!episode.is_downloaded">远程下载</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" ng-model="episodes_checked" ng-click="toggleEpisodeSelections($event)" />
+                            </td>
+                            <td colspan="3">
+                                <div class="btn-group pull-right">
+                                    <a clip-copy="copyEd2ks()" href="javascript:void(0);" class="btn btn-default">ed2k</a>
+                                    <a clip-copy="copyMagnets()" href="" class="btn btn-default">magnet</a>
+                                    <!-- <button class="btn btn-default">aria2</button> -->
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
