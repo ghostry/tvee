@@ -9,5 +9,6 @@ TVee
 * 安装 python
 * 安装依赖 `pip install -r tvee/requirements.txt && pip install supervisor`
 * 安装前端依赖 `cd tvee && bower install`
+* 配置 `cp config.sample.conf config.conf && vi config.conf`
 * 启动 `supervisord -c production/supervisord.conf`
 * http://localhost:8000
