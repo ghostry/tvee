@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import os
 from tornado.web import HTTPError
 
 from ..models import TVShow, Setting, Episode, list_property_to_json

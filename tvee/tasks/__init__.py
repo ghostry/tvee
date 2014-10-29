@@ -26,18 +26,13 @@ task_scheduler = Scheduler(connection=_connection_)
 _xunlei_lixian_path_ = os.path.join(os.path.dirname(os.path.dirname(
                                     os.path.dirname(__file__))),
                                     'xunlei-lixian', 'lixian_cli.py')
-_rename_sh_path_ = os.path.realpath(os.path.join(
-                                    os.path.dirname(os.path.dirname(__file__)),
-                                    'hooks', 'rename.sh'))
-print(_rename_sh_path_)
 
 
 def download_episode(episode):
     env = os.environ
     env['PATH'] = env['PATH'] + ':/opt/sbin:/opt/bin'
     process = subprocess.Popen([_xunlei_lixian_path_, 'download',
-                                episode.ed2k, '--on-download-complete',
-                                _rename_sh_path_],
+                                episode.ed2k],
                                env=env)
     thread = Thread(target=process.wait, args=[])
     thread.start()
