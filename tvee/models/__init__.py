@@ -157,7 +157,7 @@ class Setting(ResourceModel):
         aria2_opts = 'on-download-complete=' + _rename_sh_path_
         if self.aria2_opts:
             aria2_opts = aria2_opts + ' ' + self.aria2_opts
-        os.system('python {0} config -- aria2-opts "{1}"'.
+        os.system('python {0} config -- aria2c-rpc-opts "{1}"'.
                   format(_xunlei_lixian_path_, aria2_opts))
         if self.output_dir:
             os.system('python {0} config output-dir "{1}"'.
