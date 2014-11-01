@@ -257,9 +257,7 @@ class Episode(ResourceModel):
             file_name = file_name.encode('utf-8')
         file_name = unquote(file_name).decode('utf-8')
         file_path = os.path.join(setting.output_dir, file_name)
-        file_ariac_path = file_path + u'.aria2'
-        return os.path.exists(file_path) and \
-            not os.path.exists(file_ariac_path)
+        return os.path.exists(file_path)
 
     def __setattr__(self, key, value):
         if value:
