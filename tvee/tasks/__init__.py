@@ -39,14 +39,15 @@ def download_episode(episode):
 
 
 def crawl_tvshow(tvshow_id, auto_download=True):
+    tvshow = TVShow.get(TVShow.id == tvshow_id)
     setting = Setting.get()
     if auto_download and setting.xunlei_username and \
        setting.xunlei_password and setting.aria2_rpc_path and\
-       setting.output_dir and setting.auto_download:
+       setting.output_dir and setting.auto_download and\
+       tvshow.episodes_count > 0:
         auto_download = True
     else:
         auto_download = False
-    tvshow = TVShow.get(TVShow.id == tvshow_id)
     title, raw_episodes = crawl(tvshow.url)
     if title:
         tvshow.title = title
