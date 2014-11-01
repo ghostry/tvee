@@ -201,9 +201,9 @@ controllers.controller('TVShowListCtrl', ['$scope', '$injector', '$modal', 'Util
                     $modalInstance.close()
             ]
         modalInstance.result.then ()->
-            TVShow.get tvshow_id:$scope.tvshow_id, (tvshow)->
-                    if tvshow.id == $scope.current_tvshow
-                        $scope.current_tvshow = tvshow
+            tvshow.$put (updated_tvshow)->
+                Utils.updateObjectById $scope.tvshows, updated_tvshow
+                $scope.current_tvshow = updated_tvshow
 
 
     $scope.controlingEpisode = (episode, title, action_class, action)->
