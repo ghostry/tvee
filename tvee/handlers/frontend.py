@@ -57,13 +57,18 @@ class RSSHandler(BaseHandler):
 
 class LOGHandler(BaseHandler):
 
-    def get(self):
+    def get(self, type=None):
+        if type:
+            log_path = 'log/{}_stdout.log'.format(type)
+        else:
+            log_path = 'log/stdout.log'
         log = os.path.join(os.path.dirname(os.path.dirname(
-            os.path.dirname(__file__))), 'log/worker_stdout.log')
+            os.path.dirname(__file__))), log_path)
         content = ''
         if os.path.exists(log):
             with open(log, 'r') as f:
                 content = f.read()
+                content = content.replace('\n', '<br />')
         self.write(content)
 
 
@@ -72,4 +77,5 @@ __frontend_prefix__ = ''
 frontend_handlers = [(__frontend_prefix__ + r"/", MainHandler),
                      (__frontend_prefix__ + r"/rss", RSSHandler),
                      (__frontend_prefix__ + r"/rss/([^/]+)", RSSHandler),
-                     (__frontend_prefix__ + r"/log", LOGHandler)]
+                     (__frontend_prefix__ + r"/log", LOGHandler),
+                     (__frontend_prefix__ + r"/log/([^/]+)", LOGHandler)]
