@@ -307,12 +307,9 @@ controllers.controller('TVShowListCtrl', [
         ]
       });
       return modalInstance.result.then(function() {
-        return TVShow.get({
-          tvshow_id: $scope.tvshow_id
-        }, function(tvshow) {
-          if (tvshow.id === $scope.current_tvshow) {
-            return $scope.current_tvshow = tvshow;
-          }
+        return tvshow.$put(function(updated_tvshow) {
+          Utils.updateObjectById($scope.tvshows, updated_tvshow);
+          return $scope.current_tvshow = updated_tvshow;
         });
       });
     };
