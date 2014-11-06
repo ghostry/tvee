@@ -31,11 +31,9 @@ _xunlei_lixian_path_ = os.path.join(os.path.dirname(os.path.dirname(
 def download_episode(episode):
     env = os.environ
     env['PATH'] = env['PATH'] + ':/opt/sbin:/opt/bin'
-    process = subprocess.Popen([_xunlei_lixian_path_, 'download',
-                                episode.ed2k],
-                               env=env)
-    thread = Thread(target=process.wait, args=[])
-    thread.start()
+    subprocess.Popen([_xunlei_lixian_path_, 'download',
+                      episode.ed2k],
+                     env=env, close_fds=True)
 
 
 def crawl_tvshow(tvshow_id, auto_download=True):
