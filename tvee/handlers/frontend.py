@@ -67,8 +67,13 @@ class LOGHandler(BaseHandler):
         content = ''
         if os.path.exists(log):
             with open(log, 'r') as f:
-                content = f.read()
-                content = content.replace('\n', '<br />')
+                limit = 500
+                count = 0
+                for line in reversed(f.readlines()):
+                    content += line + '<br />'
+                    count += 1
+                    if count > limit:
+                        break
         self.write(content)
 
 
