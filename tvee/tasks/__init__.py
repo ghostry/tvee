@@ -5,8 +5,8 @@
 
 import os
 import subprocess
-from threading import Thread
 from datetime import datetime, timedelta
+import time
 
 from redis import Redis
 
@@ -28,12 +28,17 @@ _xunlei_lixian_path_ = os.path.join(os.path.dirname(os.path.dirname(
                                     'xunlei-lixian', 'lixian_cli.py')
 
 
-def download_episode(episode):
+def download_episode(episode, retry=False):
     env = os.environ
     env['PATH'] = env['PATH'] + ':/opt/sbin:/opt/bin'
-    subprocess.Popen([_xunlei_lixian_path_, 'download',
-                      episode.ed2k],
-                     env=env, close_fds=True)
+    while True:
+        status = subprocess.call([_xunlei_lixian_path_, 'download',
+                                  episode.ed2k],
+                                 env=env)
+        print(status)
+        if status == 0 or not retry:
+            break
+        time.sleep(3)
 
 
 def crawl_tvshow(tvshow_id, auto_download=True):
@@ -92,7 +97,7 @@ def crawl_tvshow(tvshow_id, auto_download=True):
             if need_download:
                 changed = True
                 if auto_download:
-                    download_episode(episode)
+                    download_episode(episode, True)
                     episode.save()
     if changed:
         tvshow.updated = datetime.utcnow()
