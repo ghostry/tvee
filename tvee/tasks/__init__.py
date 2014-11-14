@@ -35,7 +35,6 @@ def download_episode(episode, retry=False):
         status = subprocess.call([_xunlei_lixian_path_, 'download',
                                   episode.ed2k],
                                  env=env)
-        print(status)
         if status == 0 or not retry:
             break
         time.sleep(3)
