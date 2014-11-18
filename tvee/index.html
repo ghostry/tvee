@@ -62,7 +62,9 @@
                     <h2>{{current_tvshow.title}} <small><a href="{{current_tvshow.url}}">{{current_tvshow.url}}</a></small>
                         <div class="btn-group pull-right">
                             <button class="btn btn-default" ng-click="editTVShow(current_tvshow)"><i class="glyphicon glyphicon-cog"></i></button>
-                            <button class="btn btn-success" ng-click="refreshTVShow()"><i class="glyphicon glyphicon-refresh"></i></button>
+                            <button class="btn btn-primary" ng-click="refreshTVShow(current_tvshow)"><i class="glyphicon glyphicon-refresh"></i></button>
+                            <button class="btn btn-success" ng-click="resumeTVShow(current_tvshow)" ng-if="current_tvshow.paused"><i class="glyphicon glyphicon-play"></i></button>
+                            <button class="btn btn-danger" ng-click="pauseTVShow(current_tvshow)" ng-if="!current_tvshow.paused"><i class="glyphicon glyphicon-pause"></i></button>
                             <a href="/rss/{{tvshow_id}}" target="_blank" class="btn btn-info">RSS</a>
                             <button ng-click="deleteCurrentTVShow(current_tvshow)" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i></button>
                         </div>

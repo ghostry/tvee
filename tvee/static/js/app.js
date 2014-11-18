@@ -66,8 +66,9 @@ services.factory('Setting', [
 
 services.factory('TVShow', [
   '$resource', function($resource) {
-    return $resource('/api/tvshows/:tvshow_id', {
-      tvshow_id: '@id'
+    return $resource('/api/tvshows/:tvshow_id/:action', {
+      tvshow_id: '@id',
+      action: '@action'
     }, {
       query: {
         method: 'GET',
@@ -229,45 +230,26 @@ controllers.controller('TVShowListCtrl', [
         return setting.$put();
       });
     };
-    $scope.newTVShow = function() {
-      var modalInstance;
-      modalInstance = $modal.open({
-        templateUrl: 'static/template/tvshow_form.html',
-        controller: [
-          '$scope', '$modalInstance', function($scope, $modalInstance) {
-            $scope.title = '增加剧集';
-            $scope.tvshow = {
-              chinese_only: true,
-              allow_repeat: false,
-              refresh_interval: 8,
-              blob: 'HR-HDTV'
-            };
-            $scope.cancel = function() {
-              return $modalInstance.dismiss('cancel');
-            };
-            return $scope.ok = function() {
-              return $modalInstance.close($scope.tvshow);
-            };
-          }
-        ],
-        size: 'lg'
-      });
-      return modalInstance.result.then(function(tvshow) {
-        return TVShow.post(tvshow, function(new_tvshow) {
-          $scope.tvshows.push(new_tvshow);
-          $scope.tvshow_id = new_tvshow.id;
-          return $scope.current_tvshow = new_tvshow;
-        });
-      });
-    };
     $scope.editTVShow = function(tvshow) {
       var modalInstance;
       modalInstance = $modal.open({
         templateUrl: 'static/template/tvshow_form.html',
         controller: [
           '$scope', '$modalInstance', function($scope, $modalInstance) {
-            $scope.title = '设定剧集';
-            $scope.tvshow = angular.copy(tvshow);
+            $scope.dayAbbreviations = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            if (tvshow) {
+              $scope.title = '设定剧集';
+              $scope.tvshow = angular.copy(tvshow);
+            } else {
+              $scope.title = '增加剧集';
+              $scope.tvshow = {
+                chinese_only: true,
+                allow_repeat: false,
+                start_on: '0',
+                refresh_interval: 4,
+                blob: 'HR-HDTV'
+              };
+            }
             $scope.cancel = function() {
               return $modalInstance.dismiss('cancel');
             };
@@ -279,17 +261,25 @@ controllers.controller('TVShowListCtrl', [
         size: 'lg'
       });
       return modalInstance.result.then(function(tvshow) {
-        return tvshow.$put(function(updated_tvshow) {
-          Utils.updateObjectById($scope.tvshows, updated_tvshow);
-          return $scope.current_tvshow = updated_tvshow;
-        });
+        if (tvshow.id) {
+          return tvshow.$put(function(updated_tvshow) {
+            Utils.updateObjectById($scope.tvshows, updated_tvshow);
+            return $scope.current_tvshow = updated_tvshow;
+          });
+        } else {
+          return TVShow.post(tvshow, function(new_tvshow) {
+            $scope.tvshows.push(new_tvshow);
+            $scope.tvshow_id = new_tvshow.id;
+            return $scope.current_tvshow = new_tvshow;
+          });
+        }
       });
+    };
+    $scope.newTVShow = function() {
+      return $scope.editTVShow(null);
     };
     $scope.refreshTVShow = function(tvshow) {
       var modalInstance;
-      if (tvshow == null) {
-        tvshow = $scope.current_tvshow;
-      }
       modalInstance = $modal.open({
         templateUrl: 'static/template/confirm.html',
         controller: [
@@ -309,9 +299,48 @@ controllers.controller('TVShowListCtrl', [
       return modalInstance.result.then(function() {
         return tvshow.$put(function(updated_tvshow) {
           Utils.updateObjectById($scope.tvshows, updated_tvshow);
-          return $scope.current_tvshow = updated_tvshow;
+          if (updated_tvshow.id === $scope.current_tvshow.id) {
+            return $scope.current_tvshow = updated_tvshow;
+          }
         });
       });
+    };
+    $scope.controlingTVShow = function(tvshow, action, action_class, action_title) {
+      var modalInstance;
+      modalInstance = $modal.open({
+        templateUrl: 'static/template/confirm.html',
+        controller: [
+          '$scope', '$modalInstance', function($scope, $modalInstance) {
+            $scope.action = action_title + '剧集';
+            $scope.action_class = action_class;
+            $scope.tip = '确实要' + action_title + '剧集 ' + tvshow.title + ' 吗?';
+            $scope.tvshow = tvshow;
+            $scope.cancel = function() {
+              return $modalInstance.dismiss('cancel');
+            };
+            return $scope.ok = function() {
+              return $modalInstance.close($scope.tvshow);
+            };
+          }
+        ]
+      });
+      return modalInstance.result.then(function(tvshow) {
+        return TVShow.put({
+          id: tvshow.id,
+          action: action
+        }, function(updated_tvshow) {
+          Utils.updateObjectById($scope.tvshows, updated_tvshow);
+          if (updated_tvshow.id === $scope.current_tvshow.id) {
+            return $scope.current_tvshow = updated_tvshow;
+          }
+        });
+      });
+    };
+    $scope.resumeTVShow = function(tvshow) {
+      return $scope.controlingTVShow(tvshow, 'resuming', 'btn-success', '自动刷新');
+    };
+    $scope.pauseTVShow = function(tvshow) {
+      return $scope.controlingTVShow(tvshow, 'pausing', 'btn-danger', '停止自动刷新');
     };
     $scope.controlingEpisode = function(episode, title, action_class, action) {
       var modalInstance;

@@ -40,22 +40,31 @@ class TVShowHandler(BaseHandler):
         else:
             self.finish_with_json(list_property_to_json(self.list_query))
 
-    def put(self, id):
+    def put(self, id, action=None):
         if id == 'refresh':
             for tvshow in self.list_query:
                 enqueue_crawl_tvshow(tvshow.id)
             self.finish_with_json({'status': 200})
         else:
-            form = TVShowForm.from_json_with_validate(self.body_arguments)
             tvshow = self.model.get_with_validate(self.model.id == id)
-            old_refresh_interval = tvshow.refresh_interval
-            form.populate_obj(tvshow)
-            tvshow.save()
-            self.finish_with_json(tvshow.detail_json)
-            if old_refresh_interval == tvshow.refresh_interval:
-                enqueue_crawl_tvshow(tvshow.id)
+            if action is None:
+                form = TVShowForm.from_json_with_validate(self.body_arguments)
+                old_refresh_interval = tvshow.refresh_interval
+                form.populate_obj(tvshow)
+                tvshow.save()
+                if old_refresh_interval == tvshow.refresh_interval:
+                    enqueue_crawl_tvshow(tvshow.id)
+                else:
+                    schedule_crawl_tvshow(tvshow.id,
+                                          tvshow.refresh_interval*60*60)
+            elif action == 'pausing':
+                remove_crawl_tvshow_job(tvshow.id)
+            elif action == 'resuming':
+                schedule_crawl_tvshow(tvshow.id,
+                                      tvshow.refresh_interval*60*60)
             else:
-                schedule_crawl_tvshow(tvshow.id, tvshow.refresh_interval*60*60)
+                raise HTTPError(404)
+            self.finish_with_json(tvshow.detail_json)
 
     def post(self):
         form = TVShowForm.from_json_with_validate(self.body_arguments)
@@ -88,6 +97,7 @@ __api_prefix__ = '/api'
 
 api_handlers = [(__api_prefix__ + r'/tvshows', TVShowHandler),
                 (__api_prefix__ + r'/tvshows/([^/]+)', TVShowHandler),
+                (__api_prefix__ + r'/tvshows/([^/]+)/([^/]+)', TVShowHandler),
                 (__api_prefix__ + r'/episodes/([^/]+)/([^/]+)',
                  EpisodeHandler),
                 (__api_prefix__ + r'/setting', SettingHandler)]

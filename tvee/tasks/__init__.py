@@ -8,20 +8,12 @@ import subprocess
 from datetime import datetime, timedelta
 import time
 
-from redis import Redis
-
-from rq import Queue
-from rq_scheduler import Scheduler
-
 from peewee import IntegrityError
 
 from ..models import TVShow, Episode, Setting
 from ..crawler import crawl
 
-
-_connection_ = Redis()
-task_queue = Queue(connection=_connection_)
-task_scheduler = Scheduler(connection=_connection_)
+from ..extension import task_queue, task_scheduler
 
 _xunlei_lixian_path_ = os.path.join(os.path.dirname(os.path.dirname(
                                     os.path.dirname(__file__))),
@@ -41,7 +33,11 @@ def download_episode(episode, retry=False):
 
 
 def crawl_tvshow(tvshow_id, auto_download=True):
-    tvshow = TVShow.get(TVShow.id == tvshow_id)
+    try:
+        tvshow = TVShow.get(TVShow.id == tvshow_id)
+    except TVShow.DoesNotExist:
+        remove_crawl_tvshow_job(tvshow_id)
+        return
     setting = Setting.get()
     if auto_download and setting.xunlei_username and \
        setting.xunlei_password and setting.aria2_rpc_path and\

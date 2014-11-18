@@ -12,6 +12,8 @@ from peewee import Field, Model, Proxy, PrimaryKeyField, CharField,\
 
 from tornado.web import HTTPError
 
+from ..extension import task_scheduler
+
 database_proxy = Proxy()
 
 
@@ -168,7 +170,7 @@ class TVShow(ResourceModel):
     _properties_ = ['id', 'title', 'episodes_count']
     _detail_properties_ = ['id', 'title', 'url', 'blob', 'allow_repeat',
                            'episodes', 'chinese_only', 'season',
-                           'refresh_interval']
+                           'refresh_interval', 'paused']
     _chinese_indicators_ = [u'中', u'双语']
 
     class Meta:
@@ -184,6 +186,18 @@ class TVShow(ResourceModel):
     plugins = JSONListField(null=True)
     updated = DateTimeField(null=True, index=True)
 
+    def __setattr__(self, key, value):
+        if key == 'url':
+            if value.find('http://') != 0 and value.find('https://') != 0:
+                value = 'http://' + value
+            parts = urlparse(value)
+            host = ''.join([x for x in parts.hostname.split('.')[0:-1]
+                            if x != 'www'])
+            resource = parts.path.split('/')[-1]
+            if not self.title:
+                self.title = ':'.join([host, resource])
+        super(TVShow, self).__setattr__(key, value)
+
     def is_valid_episode(self, episode_title):
         if self.chinese_only:
             has_chinese = False
@@ -197,17 +211,13 @@ class TVShow(ResourceModel):
             return False
         return True
 
-    def __setattr__(self, key, value):
-        if key == 'url':
-            if value.find('http://') != 0 and value.find('https://') != 0:
-                value = 'http://' + value
-            parts = urlparse(value)
-            host = ''.join([x for x in parts.hostname.split('.')[0:-1]
-                            if x != 'www'])
-            resource = parts.path.split('/')[-1]
-            if not self.title:
-                self.title = ':'.join([host, resource])
-        super(TVShow, self).__setattr__(key, value)
+    @property
+    def paused(self):
+        jobs = task_scheduler.get_jobs()
+        for job in jobs:
+            if self.id in job.args:
+                return False
+        return True
 
     @property
     def episodes_count(self):

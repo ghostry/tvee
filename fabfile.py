@@ -26,7 +26,7 @@ def deploy(app_dir):
     with cd(app_dir):
         run('git reset --hard')
         run('git pull origin master')
-        run('pip install -r tvee/requirements.txt')
+        run('pip install -r requirements.txt')
         if files.exists(os.path.join(app_dir, 'tmp', 'supervisord.sock')):
             run('supervisorctl -c production/supervisord.conf restart ' +
                 'tvee tvee_worker')

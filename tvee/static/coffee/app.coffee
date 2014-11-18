@@ -38,7 +38,7 @@ services.factory 'Setting', ['$resource', ($resource)->
 
 
 services.factory 'TVShow', ['$resource', ($resource)->
-    return $resource '/api/tvshows/:tvshow_id', {tvshow_id: '@id'}, {
+    return $resource '/api/tvshows/:tvshow_id/:action', {tvshow_id: '@id', action: '@action'}, {
         query: {method:'GET', isArray:true},
         get: {method:'GET'},
         post: {method:'POST'},
@@ -148,35 +148,22 @@ controllers.controller('TVShowListCtrl', ['$scope', '$injector', '$modal', 'Util
         modalInstance.result.then (setting)->
             setting.$put()
 
-
-    $scope.newTVShow = ()->
-        modalInstance = $modal.open
-            templateUrl: 'static/template/tvshow_form.html'
-            controller: ['$scope', '$modalInstance', ($scope, $modalInstance)->
-                $scope.title = '增加剧集'
-                $scope.tvshow =
-                    chinese_only: true
-                    allow_repeat: false
-                    refresh_interval: 8
-                    blob: 'HR-HDTV'
-                $scope.cancel = ->
-                    $modalInstance.dismiss 'cancel'
-                $scope.ok = ->
-                    $modalInstance.close $scope.tvshow
-            ]
-            size: 'lg'
-        modalInstance.result.then (tvshow)->
-            TVShow.post tvshow, (new_tvshow)->
-                $scope.tvshows.push new_tvshow
-                $scope.tvshow_id = new_tvshow.id
-                $scope.current_tvshow = new_tvshow
-
     $scope.editTVShow = (tvshow)->
         modalInstance = $modal.open
             templateUrl: 'static/template/tvshow_form.html'
             controller: ['$scope', '$modalInstance', ($scope, $modalInstance)->
-                $scope.title = '设定剧集'
-                $scope.tvshow = angular.copy(tvshow)
+                $scope.dayAbbreviations = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                if tvshow
+                    $scope.title = '设定剧集'
+                    $scope.tvshow = angular.copy(tvshow)
+                else
+                    $scope.title = '增加剧集'
+                    $scope.tvshow =
+                        chinese_only: true
+                        allow_repeat: false
+                        start_on: '0'
+                        refresh_interval: 4
+                        blob: 'HR-HDTV'
                 $scope.cancel = ->
                     $modalInstance.dismiss 'cancel'
                 $scope.ok = ->
@@ -184,11 +171,20 @@ controllers.controller('TVShowListCtrl', ['$scope', '$injector', '$modal', 'Util
             ]
             size: 'lg'
         modalInstance.result.then (tvshow)->
-            tvshow.$put (updated_tvshow)->
-                Utils.updateObjectById $scope.tvshows, updated_tvshow
-                $scope.current_tvshow = updated_tvshow
+            if tvshow.id
+                tvshow.$put (updated_tvshow)->
+                    Utils.updateObjectById $scope.tvshows, updated_tvshow
+                    $scope.current_tvshow = updated_tvshow
+            else
+                TVShow.post tvshow, (new_tvshow)->
+                    $scope.tvshows.push new_tvshow
+                    $scope.tvshow_id = new_tvshow.id
+                    $scope.current_tvshow = new_tvshow
 
-    $scope.refreshTVShow = (tvshow = $scope.current_tvshow)->
+    $scope.newTVShow = ()->
+        $scope.editTVShow(null)
+
+    $scope.refreshTVShow = (tvshow)->
         modalInstance = $modal.open
             templateUrl: 'static/template/confirm.html'
             controller: ['$scope', '$modalInstance', ($scope, $modalInstance)->
@@ -203,8 +199,35 @@ controllers.controller('TVShowListCtrl', ['$scope', '$injector', '$modal', 'Util
         modalInstance.result.then ()->
             tvshow.$put (updated_tvshow)->
                 Utils.updateObjectById $scope.tvshows, updated_tvshow
-                $scope.current_tvshow = updated_tvshow
+                if updated_tvshow.id == $scope.current_tvshow.id
+                    $scope.current_tvshow = updated_tvshow
 
+    $scope.controlingTVShow = (tvshow, action, action_class, action_title)->
+        modalInstance = $modal.open
+            templateUrl: 'static/template/confirm.html'
+            controller: ['$scope', '$modalInstance', ($scope, $modalInstance)->
+                $scope.action = action_title + '剧集'
+                $scope.action_class = action_class
+                $scope.tip = '确实要' + action_title + '剧集 ' + tvshow.title + ' 吗?'
+                $scope.tvshow = tvshow
+                $scope.cancel = ->
+                    $modalInstance.dismiss 'cancel'
+                $scope.ok = ->
+                    $modalInstance.close $scope.tvshow
+            ]
+        modalInstance.result.then (tvshow)->
+            TVShow.put
+                id: tvshow.id
+                action: action, (updated_tvshow)->
+                    Utils.updateObjectById $scope.tvshows, updated_tvshow
+                    if updated_tvshow.id == $scope.current_tvshow.id
+                        $scope.current_tvshow = updated_tvshow
+
+    $scope.resumeTVShow = (tvshow)->
+        $scope.controlingTVShow(tvshow, 'resuming', 'btn-success', '自动刷新')
+
+    $scope.pauseTVShow = (tvshow)->
+        $scope.controlingTVShow(tvshow, 'pausing', 'btn-danger', '停止自动刷新')
 
     $scope.controlingEpisode = (episode, title, action_class, action)->
         modalInstance = $modal.open
