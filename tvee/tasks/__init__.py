@@ -102,7 +102,7 @@ def crawl_tvshow(tvshow_id, auto_download=True):
 def remove_crawl_tvshow_job(tvshow_id):
     jobs = task_scheduler.get_jobs()
     for job in jobs:
-        if tvshow_id not in job.args:
+        if str(tvshow_id) != str(job.args[0]):
             continue
         task_scheduler.cancel(job)
 

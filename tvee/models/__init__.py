@@ -215,7 +215,7 @@ class TVShow(ResourceModel):
     def paused(self):
         jobs = task_scheduler.get_jobs()
         for job in jobs:
-            if self.id in job.args:
+            if str(self.id) == str(job.args[0]):
                 return False
         return True
 
